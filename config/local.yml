@@ -1,0 +1,20 @@
+env: local
+
+app:
+  env: local
+  name: temp-go
+  version: v0.0.1
+
+logger:
+  level: 0
+  dir: "logs"
+  maxSize: 10
+  maxBackups: 3
+  maxAge: 365
+  compress: true
+  rotationTime: "24h"
+  consoleLevel: 0
+  fileLevel: 0
+  enableConsole: true
+  enableFile: false
+  timeFormat: "2006-01-02T15:04:05.000Z07:00"
