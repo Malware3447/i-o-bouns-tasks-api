@@ -27,7 +27,7 @@ type TasksParams struct {
 	Logger logit.Logger
 }
 
-func NewTasks(params *TasksParams) Repository {
+func NewTasks(params *TasksParams) TaskHandler {
 	return &Tasks{
 		logger:    params.Logger,
 		tasks:     make(map[int32]*tasks.Task),

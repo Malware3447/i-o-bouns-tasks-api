@@ -6,11 +6,11 @@ import (
 )
 
 type Service struct {
-	repo tasks.Repository
+	repo tasks.TaskHandler
 }
 
 type Params struct {
-	Repo tasks.Repository
+	Repo tasks.TaskHandler
 }
 
 func NewService(params *Params) *Service {
