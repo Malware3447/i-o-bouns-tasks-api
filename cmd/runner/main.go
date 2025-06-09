@@ -6,8 +6,10 @@ import (
 	"github.com/x3a-tech/envo"
 	"github.com/x3a-tech/logit-go"
 	"i-o-bouns-tasks-api/internal/api"
+	taskApi "i-o-bouns-tasks-api/internal/api/tasks"
 	"i-o-bouns-tasks-api/internal/app"
 	"i-o-bouns-tasks-api/internal/config"
+	"i-o-bouns-tasks-api/internal/service/tasks"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,15 +35,21 @@ func main() {
 
 	logger.Info(ctx, "Сервис запущен успешно")
 
-	tasksParams := api.TasksParams{
+	tasksParams := taskApi.TasksParams{
 		Logger: logger,
 	}
 
-	tasks := api.NewTasks(&tasksParams)
+	task := taskApi.NewTasks(&tasksParams)
+
+	serviceParams := tasks.Params{
+		Repo: task,
+	}
+
+	service := tasks.NewService(&serviceParams)
 
 	routerParams := api.Params{
-		Task:   tasks,
-		Logger: logger,
+		Service: service,
+		Logger:  logger,
 	}
 
 	newApi := api.NewApi(&routerParams)

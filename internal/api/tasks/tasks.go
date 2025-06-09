@@ -1,4 +1,4 @@
-package api
+package tasks
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ type TasksParams struct {
 	Logger logit.Logger
 }
 
-func NewTasks(params *TasksParams) *Tasks {
+func NewTasks(params *TasksParams) Repository {
 	return &Tasks{
 		logger:    params.Logger,
 		tasks:     make(map[int32]*tasks.Task),

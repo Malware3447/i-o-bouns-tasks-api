@@ -5,25 +5,26 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/x3a-tech/logit-go"
+	"i-o-bouns-tasks-api/internal/service/tasks"
 	"net/http"
 )
 
 type Api struct {
-	router *chi.Mux
-	task   *Tasks
-	logger logit.Logger
+	router  *chi.Mux
+	service *tasks.Service
+	logger  logit.Logger
 }
 
 type Params struct {
-	Task   *Tasks
-	Logger logit.Logger
+	Service *tasks.Service
+	Logger  logit.Logger
 }
 
 func NewApi(params *Params) *Api {
 	return &Api{
-		router: nil,
-		task:   params.Task,
-		logger: params.Logger,
+		router:  nil,
+		service: params.Service,
+		logger:  params.Logger,
 	}
 }
 
@@ -34,9 +35,9 @@ func (a *Api) Init(ctx context.Context) error {
 	a.router = chi.NewRouter()
 
 	a.router.Route("/api/v1", func(r chi.Router) {
-		r.Post("/create_task", a.task.CreateTask)
-		r.Get("/get_task/{id}", a.task.GetTask)
-		r.Delete("/delete_task/{id}", a.task.DeleteTask)
+		r.Post("/create_task", a.service.CreateTask)
+		r.Get("/get_task/{id}", a.service.GetTask)
+		r.Delete("/delete_task/{id}", a.service.DeleteTask)
 	})
 
 	go func() {
