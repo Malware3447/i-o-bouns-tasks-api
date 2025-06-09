@@ -18,8 +18,7 @@ import (
 
 type Tasks struct {
 	logger    logit.Logger
-	tasks     map[int32]*tasks.Task
-	mutex     sync.RWMutex
+	tasks     sync.Map
 	idCounter int32
 }
 
@@ -30,7 +29,7 @@ type TasksParams struct {
 func NewTasks(params *TasksParams) TaskHandler {
 	return &Tasks{
 		logger:    params.Logger,
-		tasks:     make(map[int32]*tasks.Task),
+		tasks:     sync.Map{},
 		idCounter: 0,
 	}
 }
@@ -58,9 +57,7 @@ func (t *Tasks) CreateTask(w http.ResponseWriter, r *http.Request) {
 		Description: taskReq.Description,
 	}
 
-	t.mutex.Lock()
-	t.tasks[id] = task
-	t.mutex.Unlock()
+	t.tasks.Store(id, task)
 
 	task.Status = status.StatusProcessing
 
@@ -96,15 +93,13 @@ func (t *Tasks) GetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t.mutex.RLock()
-	task, exists := t.tasks[int32(id)]
-	t.mutex.RUnlock()
-
+	taskInterface, exists := t.tasks.Load(int32(id))
 	if !exists {
 		t.logger.Warn(ctx, fmt.Sprintf("Задача с ID %d не найдена", id))
 		http.Error(w, "Task not found", http.StatusNotFound)
 		return
 	}
+	task := taskInterface.(*tasks.Task)
 
 	executionTime := time.Since(task.CreatedAt).Seconds()
 
@@ -137,23 +132,20 @@ func (t *Tasks) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
-	task, exists := t.tasks[int32(id)]
+	taskInterface, exists := t.tasks.LoadAndDelete(int32(id))
 	if !exists {
 		t.logger.Warn(ctx, fmt.Sprintf("Задача с Id %d не найдена", id))
 		http.Error(w, "Task not found", http.StatusNotFound)
 		return
 	}
+	task := taskInterface.(*tasks.Task)
 
 	if task.Status != status.StatusCompleted {
 		t.logger.Warn(ctx, fmt.Sprintf("Попытка удалить незавершенную задачу с ID %d", id))
 		http.Error(w, "Cannot delete uncompleted task", http.StatusBadRequest)
+		t.tasks.Store(int32(id), task) // Возвращаем задачу обратно в мапу
 		return
 	}
-
-	delete(t.tasks, int32(id))
 
 	resp := &response.TaskResponse{
 		Message: fmt.Sprintf("Задача Id %v удалена", id),
